@@ -16,6 +16,17 @@ const PORT = process.env.PORT || 8080;
 
 // Fonction pour obtenir l'adresse IP locale
 function getLocalIPAddress() {
+  // Sur Railway, utiliser l'URL publique
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    return process.env.RAILWAY_PUBLIC_DOMAIN;
+  }
+  
+  // Sur Railway avec Railway.app domain
+  if (process.env.RAILWAY_STATIC_URL) {
+    return process.env.RAILWAY_STATIC_URL;
+  }
+  
+  // Détection locale pour développement
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
@@ -104,8 +115,23 @@ app.get('/', (req, res) => {
 
 // Route pour obtenir l'adresse IP du serveur
 app.get('/api/server-info', (req, res) => {
+  let serverUrl = LOCAL_IP;
+  
+  // Sur Railway, construire l'URL complète avec HTTPS
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    serverUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  } else if (process.env.RAILWAY_STATIC_URL) {
+    serverUrl = process.env.RAILWAY_STATIC_URL;
+  } else if (LOCAL_IP !== 'localhost') {
+    // En local, utiliser HTTP avec le port
+    serverUrl = `http://${LOCAL_IP}:${PORT}`;
+  } else {
+    // Fallback local
+    serverUrl = `http://localhost:${PORT}`;
+  }
+  
   res.json({ 
-    ip: LOCAL_IP,
+    ip: serverUrl,
     port: PORT 
   });
 });
