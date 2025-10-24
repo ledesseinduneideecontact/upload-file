@@ -115,10 +115,16 @@ app.get('/', (req, res) => {
 
 // Route pour obtenir l'adresse IP du serveur
 app.get('/api/server-info', (req, res) => {
-  let serverUrl = LOCAL_IP;
+  let serverUrl;
   
-  // Sur Railway, construire l'URL complète avec HTTPS
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+  // Détecter l'URL depuis la requête (fonctionne sur Railway)
+  const host = req.get('host');
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'http';
+  
+  if (host && host.includes('railway.app')) {
+    // Sur Railway, utiliser l'URL complète
+    serverUrl = `${protocol}://${host}`;
+  } else if (process.env.RAILWAY_PUBLIC_DOMAIN) {
     serverUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
   } else if (process.env.RAILWAY_STATIC_URL) {
     serverUrl = process.env.RAILWAY_STATIC_URL;
@@ -129,6 +135,8 @@ app.get('/api/server-info', (req, res) => {
     // Fallback local
     serverUrl = `http://localhost:${PORT}`;
   }
+  
+  console.log('Server URL détectée:', serverUrl);
   
   res.json({ 
     ip: serverUrl,
