@@ -91,43 +91,51 @@ uploadForm.addEventListener('submit', async (e) => {
   uploadProgress.classList.remove('hidden');
   
   try {
-    const formData = new FormData();
-    selectedFiles.forEach(file => {
-      formData.append('files', file);
-    });
+    let uploadedCount = 0;
+    const totalFiles = selectedFiles.length;
     
-    // Simuler la progression (car fetch ne supporte pas nativement le progress)
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 10;
-      if (progress <= 90) {
-        progressFill.style.width = progress + '%';
-      }
-    }, 200);
-    
-    const response = await fetch(`/api/upload/${sessionId}`, {
-      method: 'POST',
-      body: formData
-    });
-    
-    clearInterval(progressInterval);
-    progressFill.style.width = '100%';
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Upload réussi:', data);
+    // Upload fichier par fichier
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
       
-      // Afficher le message de succès
-      setTimeout(() => {
-        uploadProgress.classList.add('hidden');
-        successMessage.classList.remove('hidden');
-      }, 500);
-    } else {
-      throw new Error('Erreur lors de l\'upload');
+      // Mettre à jour le texte de progression
+      progressText.textContent = `Upload fichier ${i + 1}/${totalFiles}: ${file.name}`;
+      
+      // Créer FormData pour un seul fichier
+      const formData = new FormData();
+      formData.append('files', file);
+      
+      // Upload du fichier
+      const response = await fetch(`/api/upload/${sessionId}`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        uploadedCount++;
+        const progress = (uploadedCount / totalFiles) * 100;
+        progressFill.style.width = progress + '%';
+        
+        console.log(`Fichier ${i + 1}/${totalFiles} uploadé: ${file.name}`);
+      } else {
+        throw new Error(`Erreur upload fichier ${file.name}`);
+      }
     }
+    
+    // Upload terminé
+    progressText.textContent = `Upload terminé ! ${uploadedCount}/${totalFiles} fichiers uploadés`;
+    
+    // Afficher le message de succès
+    setTimeout(() => {
+      uploadProgress.classList.add('hidden');
+      successMessage.classList.remove('hidden');
+    }, 1000);
+    
   } catch (error) {
     console.error('Erreur upload:', error);
-    alert('Erreur lors de l\'upload des fichiers');
+    alert(`Erreur lors de l'upload: ${error.message}`);
+    
+    // Masquer la progression en cas d'erreur
     uploadProgress.classList.add('hidden');
     previewSection.classList.remove('hidden');
   }
