@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Importer Fichiers - QR Code</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📱 Importer Fichiers</h1>
+      <p class="subtitle">Scannez le QR code pour uploader des photos/vidéos</p>
+    </header>
+
+    <div class="qr-section">
+      <div id="qrcode" class="qr-container"></div>
+      <p class="qr-instruction">
+        Scannez ce QR code avec votre mobile pour commencer
+      </p>
+      <button id="regenerate-btn" class="btn btn-secondary">🔄 Nouvelle Session</button>
+    </div>
+
+    <div class="files-section">
+      <div class="files-header">
+        <h2>📂 Fichiers Reçus (<span id="file-count">0</span>)</h2>
+        <div class="actions">
+          <button id="download-all-btn" class="btn btn-primary" disabled>
+            📦 Télécharger en ZIP
+          </button>
+        </div>
+      </div>
+
+      <div id="files-grid" class="files-grid">
+        <!-- Les fichiers seront affichés ici -->
+      </div>
+
+      <div id="empty-state" class="empty-state">
+        <p>Aucun fichier pour le moment</p>
+        <p class="hint">Scannez le QR code et uploadez des fichiers</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Librairie QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Script principal -->
+  <script src="app.js"></script>
+</body>
+</html>
