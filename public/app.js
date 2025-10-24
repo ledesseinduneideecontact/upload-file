@@ -97,9 +97,18 @@ function generateQRCode() {
   // Nettoyer l'ancien QR code
   qrcodeElement.innerHTML = '';
   
-  // URL pour l'upload avec l'IP du serveur
-  const portString = serverPort === 80 ? '' : `:${serverPort}`;
-  const uploadUrl = `http://${serverIP}${portString}/upload.html?session=${sessionId}`;
+  // Construire l'URL correcte
+  let uploadUrl;
+  
+  // Si serverIP contient déjà le protocole (https://...), l'utiliser tel quel
+  if (serverIP.startsWith('http://') || serverIP.startsWith('https://')) {
+    uploadUrl = `${serverIP}/upload.html?session=${sessionId}`;
+  } else {
+    // Sinon, construire l'URL avec le protocole approprié
+    const protocol = window.location.protocol; // http: ou https:
+    const portString = (serverPort === 80 || serverPort === 443) ? '' : `:${serverPort}`;
+    uploadUrl = `${protocol}//${serverIP}${portString}/upload.html?session=${sessionId}`;
+  }
   
   console.log('QR Code URL:', uploadUrl);
   
