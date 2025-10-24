@@ -94,7 +94,7 @@ uploadForm.addEventListener('submit', async (e) => {
     let uploadedCount = 0;
     const totalFiles = selectedFiles.length;
     
-    // Upload fichier par fichier
+    // Upload fichier par fichier avec délai
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i];
       
@@ -105,25 +105,42 @@ uploadForm.addEventListener('submit', async (e) => {
       const formData = new FormData();
       formData.append('files', file);
       
-      // Upload du fichier
-      const response = await fetch(`/api/upload/${sessionId}`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (response.ok) {
-        uploadedCount++;
-        const progress = (uploadedCount / totalFiles) * 100;
-        progressFill.style.width = progress + '%';
+      try {
+        // Upload du fichier
+        const response = await fetch(`/api/upload/${sessionId}`, {
+          method: 'POST',
+          body: formData
+        });
         
-        console.log(`Fichier ${i + 1}/${totalFiles} uploadé: ${file.name}`);
-      } else {
-        throw new Error(`Erreur upload fichier ${file.name}`);
+        if (response.ok) {
+          uploadedCount++;
+          const progress = (uploadedCount / totalFiles) * 100;
+          progressFill.style.width = progress + '%';
+          
+          console.log(`Fichier ${i + 1}/${totalFiles} uploadé: ${file.name}`);
+        } else {
+          console.error(`Erreur upload fichier ${file.name}:`, response.status);
+          // Continuer avec le fichier suivant au lieu de tout arrêter
+          continue;
+        }
+      } catch (error) {
+        console.error(`Erreur réseau pour ${file.name}:`, error);
+        // Continuer avec le fichier suivant
+        continue;
+      }
+      
+      // Délai entre les uploads pour éviter la surcharge du serveur
+      if (i < selectedFiles.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500)); // 500ms de délai
       }
     }
     
     // Upload terminé
-    progressText.textContent = `Upload terminé ! ${uploadedCount}/${totalFiles} fichiers uploadés`;
+    if (uploadedCount === totalFiles) {
+      progressText.textContent = `Upload terminé ! ${uploadedCount}/${totalFiles} fichiers uploadés avec succès`;
+    } else {
+      progressText.textContent = `Upload terminé ! ${uploadedCount}/${totalFiles} fichiers uploadés (${totalFiles - uploadedCount} échecs)`;
+    }
     
     // Afficher le message de succès
     setTimeout(() => {
